@@ -14,10 +14,6 @@
             "type": "link",
             "default": "data-sources-sentinel.html"
         },
-        "sni": {
-            "type": "text",
-            "optional": true
-        },
         "selfSignedCert": {
             "type": "password",
             "optional": true
@@ -25,7 +21,7 @@
         "options": {
             "alert": {
                 "type": "boolean",
-                "default": true
+                "default": false
             },
             "alertV2": {
                 "type": "boolean",

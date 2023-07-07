@@ -66,7 +66,6 @@ class DataSourceObjToStixObj:
         self.callback = callback
 
         # parse through options
-        self.cybox_default = options.get('cybox_default', True)
 
         self.properties = observable.properties
 
@@ -299,9 +298,24 @@ class DataSourceObjToStixObj:
 
                 transformer = self.transformers[prop['transformer']] if 'transformer' in prop else None
                 references = references = prop['references'] if 'references' in prop else None
+                
+                # This check avoid using duplicate reference in the multiple objects of the same type.
+                # For example: If there are multiple source ipv4-addr and network-traffic objects then 
+                # without this reference check the first source ipv4-addr object will be referenced to all network-traffic objects.
+                if object_key_ind and references:
+                    if isinstance(references, str):
+                        references = references + '_' + str(object_key_ind)
+                    elif isinstance(references, list):
+                        references = [ref + '_' + str(object_key_ind) for ref in references]
+                        
                 # unwrap array of stix values to separate stix objects
                 unwrap = True if 'unwrap' in prop and isinstance(data, list) else False
-                cybox = prop.get('cybox', self.cybox_default)
+                if "." in key:
+                    cybox = True
+                else:
+                    cybox = False
+                
+                # cybox = prop.get('cybox', self.cybox_default)
 
                 if self.callback:
                     try:
@@ -313,7 +327,8 @@ class DataSourceObjToStixObj:
 
                 config_keys = key.split('.')
                 if len(config_keys) < 2:
-                    if False is prop.get('cybox', self.cybox_default): 
+                    # if False is prop.get('cybox', self.cybox_default):
+                    if not cybox:
                         object_tag_ref_map['out_cybox'][key] = self._compose_value_object(data, [], observable_key=key, object_tag_ref_map=object_tag_ref_map, transformer=transformer, references=references, unwrap=unwrap)
                     pass
                 else:
